@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="countdown">
+
+        <attr name="textColor" format="color"/>
+        <!--文本内容-->
+        <attr name="textContents" format="string"/>
+        <!--文本大小-->
+        <attr name="textSize" format="dimension"/>
+        <!--圆环宽度-->
+        <attr name="ringWidth" format="float"/>
+        <!--圆环颜色-->
+        <attr name="ringColor" format="color"/>
+
+    </declare-styleable>
+</resources>
