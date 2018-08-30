@@ -1,18 +1,14 @@
 package com.sbl.myapplication;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.SweepGradient;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 
 public class CountDownView extends View {
 
@@ -32,7 +28,6 @@ public class CountDownView extends View {
     private int mHeight;
     //圆环的矩形区域
     private RectF mRectF;
-    private RectF mRectF2;
     private Paint mPaint;
     //倒计时时间
     private int mCountdownTime;
@@ -40,6 +35,9 @@ public class CountDownView extends View {
     private CountDownFinishListener mListener;
     Paint textPaint ;
     Paint bgPaint ;
+    Paint circlePaint;//最外层圆
+    Paint testPaint;
+    Paint testPaint2;
     // 终止时间，单位毫秒
     private  long mEndTime;
     // 倒计时持续时间，单位毫秒
@@ -64,15 +62,40 @@ public class CountDownView extends View {
         ringColor = a.getColor(R.styleable.countdown_ringColor,context.getResources().getColor(R.color.colorPrimary));
         ringWidth = a.getFloat(R.styleable.countdown_ringWidth,dp2px(context,40));
         a.recycle();
+
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setAntiAlias(true);
+        mPaint.setColor(ringColor);
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStrokeWidth(ringWidth);
+
+        circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        circlePaint.setColor(0xFFaaaaaa);
+        circlePaint.setStyle(Paint.Style.STROKE);//只绘制图形轮廓（描边）
+        circlePaint.setStrokeWidth(ringWidth);
+
         textPaint= new Paint();
         textPaint.setAntiAlias(true);
         textPaint.setTextAlign(Paint.Align.CENTER);//字居中
+        textPaint.setTextSize(textSize);
+        textPaint.setColor(textColor);
+
         bgPaint = new Paint();
-        bgPaint.setStyle(Paint.Style.FILL);
+        bgPaint.setStyle(Paint.Style.FILL);//只绘制图形内容;Paint.Style.FILL_AND_STROKE 既绘制轮廓也绘制内容
         bgPaint.setAntiAlias(true);
+        bgPaint.setStrokeWidth(ringWidth);
         bgPaint.setColor(getResources().getColor(R.color.bgPath));
+
+        testPaint = new Paint();
+        testPaint.setStyle(Paint.Style.STROKE);
+        testPaint.setAntiAlias(true);
+        testPaint. setStrokeWidth(dp2px(getContext(),1));
+        testPaint.setColor(getResources().getColor(R.color.test));
+
+        testPaint2 = new Paint();
+        testPaint2.setStyle(Paint.Style.FILL);
+        testPaint2.setAntiAlias(true);
+        testPaint2. setStrokeWidth(dp2px(getContext(),1));
+        testPaint2.setColor(getResources().getColor(R.color.test2));
     }
 
     public void setCountdownTime(int mCountdownTime) {
@@ -86,32 +109,34 @@ public class CountDownView extends View {
         /**
          * 为了避免画圆边界地方有重叠的。切
          */
-        mRectF = new RectF(0 + ringWidth / 2, 0 + ringWidth / 2,
-                mWidth - ringWidth / 2, mHeight - ringWidth / 2);
+        mRectF = new RectF( 2*ringWidth ,  2*ringWidth ,
+                mWidth - 2*ringWidth , mHeight - 2*ringWidth );
+
     }
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         final long lastTime = mEndTime - System.currentTimeMillis();
+        mPaint.setShader(new SweepGradient(mRectF.centerX(),
+                mRectF.centerY(), 0xFFF2A159, 0xFFFE7761));
         if (lastTime>0) {
-            //颜色
-            mPaint.setColor(ringColor);
-            //空心
-            mPaint.setStyle(Paint.Style.STROKE);
-            //宽度
-            mPaint.setStrokeWidth(ringWidth);
+            //进度圆->描边的宽度会占矩形内一半
             canvas.drawArc(mRectF, -90, mCurrentProgress - 360, false, mPaint);
-            //背景圆圈
-            canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top-ringWidth)/2,bgPaint);
+            canvas.drawRect(mRectF,testPaint);
+            //背景内层圆圈；可能把进度圆挡住（互相都有可能）
+            canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top)/2-ringWidth+bgPaint.getStrokeWidth()/2,bgPaint);
+            //最外层圆
+          canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top)/2+ringWidth,circlePaint);
             //绘制文本
             String text = mCountdownTime - (int) (mCurrentProgress / 360f * mCountdownTime) + "";
-            textPaint.setTextSize(textSize);
-            textPaint.setColor(textColor);
             //文字居中显示
             Paint.FontMetricsInt fontMetrics = textPaint.getFontMetricsInt();
+            /**
+             * top = top线的y坐标 - baseline线的y坐标；//负数
+               bottom = bottom线的y坐标 - baseline线的y坐标；//正数
+             */
             int baseline = (int) ((mRectF.bottom + mRectF.top - fontMetrics.bottom - fontMetrics.top) / 2);
             canvas.drawText(text, mRectF.centerX(), baseline, textPaint);//字是在xy的左下角开始
-
             mCurrentProgress = (lastTime * 1.0f / mTotalLastTime) * 360f;
             invalidate();
         } else {

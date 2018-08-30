@@ -11,7 +11,7 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         app:textColor = "#ff00ff"
-        app:ringWidth="12"
+        app:ringWidth="20"
         app:ringColor = "#f0fa"
         app:textContents ="5"
         app:textSize = "12dp"
