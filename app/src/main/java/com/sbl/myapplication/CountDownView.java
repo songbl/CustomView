@@ -120,13 +120,16 @@ public class CountDownView extends View {
         mPaint.setShader(new SweepGradient(mRectF.centerX(),
                 mRectF.centerY(), 0xFFF2A159, 0xFFFE7761));
         if (lastTime>0) {
-            //进度圆->描边的宽度会占矩形内一半
-            canvas.drawArc(mRectF, -90, mCurrentProgress - 360, false, mPaint);
             canvas.drawRect(mRectF,testPaint);
             //背景内层圆圈；可能把进度圆挡住（互相都有可能）
             canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top)/2-ringWidth+bgPaint.getStrokeWidth()/2,bgPaint);
+            canvas.save();
+            canvas.rotate(-90, mRectF.centerX(), mRectF.centerY());//临时坐标系改变
+            //进度圆->描边的宽度会占矩形内一半。开始位置还是从0度开始，起始和结束的颜色在0度。
+            canvas.drawArc(mRectF, 0, mCurrentProgress - 360, false, mPaint);
+            canvas.restore();
             //最外层圆
-          canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top)/2+ringWidth,circlePaint);
+            canvas.drawCircle(mRectF.centerX(),mRectF.centerY(),(mRectF.bottom-mRectF.top)/2+ringWidth,circlePaint);
             //绘制文本
             String text = mCountdownTime - (int) (mCurrentProgress / 360f * mCountdownTime) + "";
             //文字居中显示

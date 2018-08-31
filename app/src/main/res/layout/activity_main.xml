@@ -8,10 +8,10 @@
 
     <com.sbl.myapplication.CountDownView
         android:id="@+id/cd"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
         app:textColor = "#ff00ff"
-        app:ringWidth="20"
+        app:ringWidth="30"
         app:ringColor = "#f0fa"
         app:textContents ="5"
         app:textSize = "12dp"
